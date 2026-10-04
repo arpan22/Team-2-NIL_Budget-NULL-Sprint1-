@@ -1,12 +1,162 @@
 openapi: '3.0.3'
 info:
-  title: API Title
+  title: CUSports
   version: '1.0'
 servers:
   - url: https://api.server.test/v1
 paths:
-  /test:
-    get:
+  /accounts/{id}:
+    patch:
+      summary: Update password
+      description: Allows a registered customer to update their account password by providing their current password and a new password.
+      operationId: updateAccountPassword
+      tags:
+        - Accounts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user account.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePassword'
       responses:
         '200':
-          description: OK
+          description: Password successfully updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordUpdateResponse'
+              example:
+                message: Password has been successfully updated.
+        '400':
+          description: The new password does not meet password requirements.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: The new password is invalid.
+        '401':
+          description: The current password provided is incorrect.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: The current password is incorrect.
+components:
+  schemas:
+    Account:
+      type: object
+      required:
+        - account_id
+        - name
+        - email
+        - password
+        - account_type
+      properties:
+        account_id:
+          type: string
+          description: The unique identifier of the account.
+        name:
+          type: string
+          description: The account holder's full name.
+        email:
+          type: string
+          format: email
+        phone_number:
+          type: string
+        password:
+          type: string
+          format: password
+          writeOnly: true
+        preferences:
+          type: object
+          properties:
+            payment:
+              type: array
+              description: Saved payment methods.
+              items:
+                type: string
+                enum:
+                  - PayPal
+                  - credit_card
+                  - debit_card
+            notifications:
+              type: array
+              description: Channels the user wants to receive notifications on.
+              items:
+                type: string
+                enum:
+                  - SMS
+                  - Email
+            promotion:
+              type: boolean
+              description: Whether the user opts in to promotional messages.
+        account_type:
+          type: array
+          description: The roles assigned to this account. An account may hold more than one.
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/AccountType'
+        last_login_date:
+          type: string
+          format: date-time
+    AccountType:
+      type: string
+      enum:
+        - customer
+        - BU
+        - admin
+        - warehouse
+        - shipper
+        - CSR
+    Update:
+      type: object
+      required:
+        - updateField
+        - updateValue
+      properties:
+        updateField:
+          type: string
+          description: Name of the account field being updated.
+          example: email
+        updateValue:
+          type: string
+          description: The new value for the field.
+          example: new.email@example.com
+    UpdatePassword:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+          format: password
+          description: The user's existing password.
+        newPassword:
+          type: string
+          format: password
+          description: >-
+            The new password. Must be at least 8 characters long and include
+            an uppercase letter, a lowercase letter, a number, and a special
+            character.
+          minLength: 8
+    PasswordUpdateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
