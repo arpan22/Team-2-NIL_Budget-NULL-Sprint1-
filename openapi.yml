@@ -71,15 +71,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
-                message: Inavlid credentials, unable to proceed in action.
+                message: Invalid credentials, unable to proceed in action.
     post:
-      summary: Add an employee user type
+      summary: Add an employee account
       description: >-
-        Allows a CUSports admin to add one of the five employee user types:
-        business user (BU), admin, customer service representative (CSR),
-        warehouse, or shipper. Send updateField as "account_type" and the
-        type in updateValue. Repeat the request once for each type.
-      operationId: addUserType
+        Allows a CUSports admin to add an employee account with one of the
+        five employee user types: business user (BU), admin, customer service
+        representative (CSR), warehouse, or shipper. The account_id is
+        assigned by the server.
+      operationId: addEmployeeAccount
       tags:
         - Accounts
       security:
@@ -89,45 +89,76 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Update'
+              $ref: '#/components/schemas/EmployeeAccount'
             examples:
               businessUser:
                 value:
-                  updateField: account_type
-                  updateValue: BU
+                  name: Jordan Lee
+                  email: jordan.lee@cusports.com
+                  password: Str0ng!Pass
+                  account_type:
+                    - BU
               admin:
                 value:
-                  updateField: account_type
-                  updateValue: admin
+                  name: Sam Patel
+                  email: sam.patel@cusports.com
+                  password: Str0ng!Pass
+                  account_type:
+                    - admin
               customerServiceRep:
                 value:
-                  updateField: account_type
-                  updateValue: CSR
+                  name: Riley Chen
+                  email: riley.chen@cusports.com
+                  password: Str0ng!Pass
+                  account_type:
+                    - CSR
               warehouse:
                 value:
-                  updateField: account_type
-                  updateValue: warehouse
+                  name: Casey Brooks
+                  email: casey.brooks@cusports.com
+                  password: Str0ng!Pass
+                  account_type:
+                    - warehouse
               shipper:
                 value:
-                  updateField: account_type
-                  updateValue: shipper
+                  name: Morgan Diaz
+                  email: morgan.diaz@cusports.com
+                  password: Str0ng!Pass
+                  account_type:
+                    - shipper
       responses:
         '201':
-          description: The user type was added.
+          description: The employee account was added.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Update'
+                $ref: '#/components/schemas/Account'
               example:
-                message: The user type has been successfully added.
+                account_id: emp_1042
+                name: Jordan Lee
+                email: jordan.lee@cusports.com
+                account_type:
+                  - BU
         '400':
-          description: The type is not one of the five employee types.
+          description: >-
+            The account details are invalid, or the account type is not one of
+            the five employee types.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 message: The user type is invalid.
+        '401':
+          description: >-
+            The requester did not provide credentials, or the token is
+            invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Admin credentials required to proceed in action.
         '403':
           description: The requester is not an admin.
           content:
@@ -135,15 +166,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
-                message: Only admins can add user types.
+                message: Only admins can add employee accounts.
         '409':
-          description: The user type has already been added.
+          description: An account with this email already exists.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
-                message: The user type already exists.
+                message: An account with this email already exists.
     delete:
       summary: Delete all accounts
       description: >-
@@ -357,7 +388,8 @@ components:
       properties:
         account_id:
           type: string
-          description: The unique identifier of the account.
+          readOnly: true
+          description: The unique identifier of the account, assigned by the server.
         name:
           type: string
           description: The account holder's full name.
@@ -399,6 +431,28 @@ components:
         last_login_date:
           type: string
           format: date-time
+          readOnly: true
+    EmployeeAccount:
+      description: >-
+        An Account whose account_type may only hold the five employee user
+        types. Used when an admin adds an employee account.
+      allOf:
+        - $ref: '#/components/schemas/Account'
+        - type: object
+          properties:
+            account_type:
+              type: array
+              items:
+                $ref: '#/components/schemas/EmployeeAccountType'
+    EmployeeAccountType:
+      type: string
+      description: The five CUSports employee user types.
+      enum:
+        - BU
+        - admin
+        - CSR
+        - warehouse
+        - shipper
     AccountType:
       type: string
       enum:
