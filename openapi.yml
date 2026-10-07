@@ -80,22 +80,18 @@ components:
           type: object
           properties:
             payment:
-              type: array
-              description: Saved payment methods.
-              items:
-                type: string
-                enum:
-                  - PayPal
-                  - credit_card
-                  - debit_card
+              type: string
+              description: User's preferred payment method.
+              enum:
+                - PayPal
+                - credit_card
+                - debit_card
             notifications:
-              type: array
-              description: Channels the user wants to receive notifications on.
-              items:
-                type: string
-                enum:
-                  - SMS
-                  - Email
+              type: string
+              description: User's preferred method of recieving notifications.
+              enum:
+                - SMS
+                - Email
             promotion:
               type: boolean
               description: Whether the user opts in to promotional messages.
