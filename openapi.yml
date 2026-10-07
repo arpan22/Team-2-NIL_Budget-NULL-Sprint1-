@@ -73,13 +73,10 @@ paths:
               example:
                 message: Invalid credentials, unable to proceed in action.
     post:
-      summary: Add an employee account
-      description: >-
-        Allows a CUSports admin to add an employee account with one of the
-        five employee user types: business user (BU), admin, customer service
-        representative (CSR), warehouse, or shipper. The account_id is
-        assigned by the server.
-      operationId: addEmployeeAccount
+      summary: Creates a new account
+      description:
+        Creates a new account. Anybody can create a customer account, but a set of admin credentials are required to create employee accounts.
+      operationId: addAccount
       tags:
         - Accounts
       security:
@@ -89,7 +86,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmployeeAccount'
+              oneOf:
+                - $ref: '#/components/schemas/EmployeeAccount'
+                - $ref: '#/components/schemas/Account'
             examples:
               businessUser:
                 value:
@@ -126,9 +125,16 @@ paths:
                   password: Str0ng!Pass
                   account_type:
                     - shipper
+              customer:
+                value:
+                  name: John Doe
+                  email: JohnD@email.com
+                  password: Str0ng!Pass
+                  account_type:
+                   - customer
       responses:
         '201':
-          description: The employee account was added.
+          description: The account was added.
           content:
             application/json:
               schema:
@@ -141,8 +147,7 @@ paths:
                   - BU
         '400':
           description: >-
-            The account details are invalid, or the account type is not one of
-            the five employee types.
+            The account details or type is invalid.
           content:
             application/json:
               schema:
@@ -151,7 +156,7 @@ paths:
                 message: The user type is invalid.
         '401':
           description: >-
-            The requester did not provide credentials, or the token is
+            The requester is trying to make an employee account, and did not provide credentials, or the token is
             invalid.
           content:
             application/json:
@@ -159,14 +164,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 message: Admin credentials required to proceed in action.
-        '403':
-          description: The requester is not an admin.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: Only admins can add employee accounts.
         '409':
           description: An account with this email already exists.
           content:
