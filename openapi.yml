@@ -223,9 +223,9 @@ paths:
               example:
                 message: The user was not found.
     patch:
-      summary: Update password
-      description: Allows a registered customer to update their account password by providing their current password and a new password.
-      operationId: updateAccountPassword
+      summary: Change Preferences or Password
+      description: Allows a registered customer to change their preferences or their password, requiring the old password.
+      operationId: updateAccountInfo
       tags:
         - Accounts
       parameters:
@@ -243,22 +243,31 @@ paths:
               $ref: '#/components/schemas/Update'
       responses:
         '200':
-          description: Password successfully updated.
+          description: Account successfully updated.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Update'
-              example:
+              examples:
                 updatePassword:
-                  message: Password has been successfully updated.
+                  value:
+                    message: Password has been successfully updated.
+                updatePreference:
+                  value:
+                    message: Preference has been successfully changed.
         '400':
-          description: The new password does not meet password requirements.
+          description: The update request contains invalid information.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: The new password is invalid.
+              examples:
+                invalidPassword:
+                  value:
+                    message: The new password is invalid.
+                invalidPrefUpdate:
+                  value:
+                    message: The requested preference change is invalid.
         '401':
           description: The current password provided is incorrect.
           content:
