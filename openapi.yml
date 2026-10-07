@@ -27,6 +27,16 @@ paths:
             enum:
               - customer
               - employee
+        - name: sort
+          in: query
+          required: false
+          description: >-
+            Optional. Set to last_login_date to sort the returned accounts by
+            the date and time of their last login, from latest to oldest.
+          schema:
+            type: string
+            enum:
+              - last_login_date
       responses:
         '200':
           description: All accounts of the requested type.
@@ -44,6 +54,16 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 message: The account type is invalid.
+        '401':
+          description: >-
+            The requester did not provide credentials, the token is invalid,
+            or the requester is not an employee or admin account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Admin credentials required to proceed in action.
         '403':
           description: The requester is not an admin.
           content:
@@ -51,7 +71,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
-                message: Only admins can view accounts.
+                message: Inavlid credentials, unable to proceed in action.
     post:
       summary: Add an employee user type
       description: >-
@@ -124,6 +144,43 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 message: The user type already exists.
+    delete:
+      summary: Delete all accounts
+      description: >-
+        Allows a CUSports admin to delete every account in the Account
+        service, so the database is clean when testing.
+      operationId: deleteAllAccounts
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: All accounts were deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Update'
+              example:
+                message: All accounts have been successfully deleted.
+        '401':
+          description: >-
+            The requester did not provide credentials, or the token is
+            invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Valid admin credentials are required.
+        '403':
+          description: The requester is not an admin.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: The user is not authorized to proceed with that action.
   /accounts/{id}:
     get:
       summary: Look up an account by user id
@@ -210,6 +267,69 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 message: The current password is incorrect.
+    delete:
+      summary: Delete an account by user id
+      description: >-
+        Allows a CUSports admin to delete a single account by its user id.
+        This covers both customer accounts, to remove users who are no longer
+        wanted as customers, and employee accounts (BU, admin, CSR, warehouse,
+        or shipper), to remove access when employment changes.
+      operationId: deleteAccountById
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user account.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The account was deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Update'
+              examples:
+                customer:
+                  value:
+                    message: deletion successful
+                employee:
+                  value:
+                    message: Employee account emp_1042 has been successfully deleted.
+        '401':
+          description: >-
+            The requester did not provide credentials, the token is invalid,
+            or the requester is not an employee or admin account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                customer:
+                  value:
+                    message: Unauthorized action.
+                employee:
+                  value:
+                    message: The action is forbidden due to missing credentials.
+        '403':
+          description: >-
+            The requester is signed in as a CUSports employee but is not an
+            admin.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                customer:
+                  value:
+                    message: Invalid credentials, unable to proceed in action.
+                employee:
+                  value:
+                    message: The intended action cannot be performed due to incorrect credentials.
 components:
   securitySchemes:
     bearerAuth:
