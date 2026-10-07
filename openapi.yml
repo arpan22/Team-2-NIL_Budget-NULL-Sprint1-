@@ -5,7 +5,166 @@ info:
 servers:
   - url: https://api.server.test/v1
 paths:
+  /accounts:
+    get:
+      summary: List accounts by type
+      description: >-
+        Allows a CUSports admin to review user information by listing all
+        customer accounts or all employee accounts. Employee accounts are
+        those with a BU, admin, CSR, warehouse, or shipper account type.
+      operationId: listAccountsByType
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: account_type
+          in: query
+          required: true
+          description: Which group of accounts to return.
+          schema:
+            type: string
+            enum:
+              - customer
+              - employee
+      responses:
+        '200':
+          description: All accounts of the requested type.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+        '400':
+          description: The account type is not customer or employee.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: The account type is invalid.
+        '403':
+          description: The requester is not an admin.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Only admins can view accounts.
+    post:
+      summary: Add an employee user type
+      description: >-
+        Allows a CUSports admin to add one of the five employee user types:
+        business user (BU), admin, customer service representative (CSR),
+        warehouse, or shipper. Send updateField as "account_type" and the
+        type in updateValue. Repeat the request once for each type.
+      operationId: addUserType
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Update'
+            examples:
+              businessUser:
+                value:
+                  updateField: account_type
+                  updateValue: BU
+              admin:
+                value:
+                  updateField: account_type
+                  updateValue: admin
+              customerServiceRep:
+                value:
+                  updateField: account_type
+                  updateValue: CSR
+              warehouse:
+                value:
+                  updateField: account_type
+                  updateValue: warehouse
+              shipper:
+                value:
+                  updateField: account_type
+                  updateValue: shipper
+      responses:
+        '201':
+          description: The user type was added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Update'
+              example:
+                message: The user type has been successfully added.
+        '400':
+          description: The type is not one of the five employee types.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: The user type is invalid.
+        '403':
+          description: The requester is not an admin.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Only admins can add user types.
+        '409':
+          description: The user type has already been added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: The user type already exists.
   /accounts/{id}:
+    get:
+      summary: Look up an account by user id
+      description: >-
+        Allows a CUSports admin to look up any account, customer or employee,
+        by its user id.
+      operationId: getAccountById
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user account.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The account's information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '403':
+          description: The requester is not an admin.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Only admins can look up accounts.
+        '404':
+          description: No account exists with that user id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: The user was not found.
     patch:
       summary: Update password
       description: Allows a registered customer to update their account password by providing their current password and a new password.
@@ -24,16 +183,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdatePassword'
+              $ref: '#/components/schemas/Update'
       responses:
         '200':
           description: Password successfully updated.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PasswordUpdateResponse'
+                $ref: '#/components/schemas/Update'
               example:
-                message: Password has been successfully updated.
+                updatePassword:
+                  message: Password has been successfully updated.
         '400':
           description: The new password does not meet password requirements.
           content:
@@ -51,6 +211,11 @@ paths:
               example:
                 message: The current password is incorrect.
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     Account:
       type: object
@@ -116,9 +281,9 @@ components:
         - CSR
     Update:
       type: object
-      required:
-        - updateField
-        - updateValue
+      description: >-
+        Changes one account field. For most fields, send updateField and
+        updateValue. To change the password, send updatePassword instead.
       properties:
         updateField:
           type: string
@@ -128,29 +293,35 @@ components:
           type: string
           description: The new value for the field.
           example: new.email@example.com
-    UpdatePassword:
-      type: object
-      required:
-        - currentPassword
-        - newPassword
-      properties:
-        currentPassword:
-          type: string
-          format: password
-          description: The user's existing password.
-        newPassword:
-          type: string
-          format: password
-          description: >-
-            The new password. Must be at least 8 characters long and include
-            an uppercase letter, a lowercase letter, a number, and a special
-            character.
-          minLength: 8
-    PasswordUpdateResponse:
-      type: object
-      properties:
         message:
           type: string
+          readOnly: true
+          description: Result of the update, returned in the response.
+        updatePassword:
+          type: object
+          description: Used only when changing the password.
+          required:
+            - currentPassword
+            - newPassword
+          properties:
+            currentPassword:
+              type: string
+              format: password
+              writeOnly: true
+              description: The user's existing password.
+            newPassword:
+              type: string
+              format: password
+              writeOnly: true
+              description: >-
+                The new password. Must be at least 8 characters long and
+                include an uppercase letter, a lowercase letter, a number, and
+                a special character.
+              minLength: 8
+            message:
+              type: string
+              readOnly: true
+              description: Result of the password update, returned in the response.
     ErrorResponse:
       type: object
       properties:
