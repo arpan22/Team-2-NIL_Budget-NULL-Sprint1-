@@ -86,16 +86,14 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: '#/components/schemas/EmployeeAccount'
-                - $ref: '#/components/schemas/Account'
+                $ref: '#/components/schemas/Account'
       responses:
         '201':
           description: The account was added.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Account'
+                $ref: '#/components/schemas/UserIDResponse'
         '400':
           description: >-
             The account details or type is invalid.
@@ -453,4 +451,9 @@ components:
       type: object
       properties:
         message:
+          type: string
+    UserIDResponse:
+      type: object
+      properties:
+        userID:
           type: string
