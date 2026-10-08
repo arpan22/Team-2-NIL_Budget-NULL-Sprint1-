@@ -424,10 +424,6 @@ components:
           type: string
           description: The new value for the field.
           example: new.email@example.com
-        message:
-          type: string
-          readOnly: true
-          description: Result of the update, returned in the response.
         updatePassword:
           type: object
           description: Used only when changing the password.
