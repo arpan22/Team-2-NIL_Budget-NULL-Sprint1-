@@ -252,7 +252,7 @@ paths:
                 message: The user was not found.
     patch:
       summary: Change Preferences or Password
-      description: Allows a registered customer to change their preferences or their password, requiring the old password.
+      description: Allows a registered customer to change their preferences or their password. The customer must provide their old password in order to change their password.
       operationId: updateAccountInfo
       tags:
         - Accounts
