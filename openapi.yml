@@ -89,49 +89,6 @@ paths:
               oneOf:
                 - $ref: '#/components/schemas/EmployeeAccount'
                 - $ref: '#/components/schemas/Account'
-            examples:
-              businessUser:
-                value:
-                  name: Jordan Lee
-                  email: jordan.lee@cusports.com
-                  password: Str0ng!Pass
-                  account_type:
-                    - BU
-              admin:
-                value:
-                  name: Sam Patel
-                  email: sam.patel@cusports.com
-                  password: Str0ng!Pass
-                  account_type:
-                    - admin
-              customerServiceRep:
-                value:
-                  name: Riley Chen
-                  email: riley.chen@cusports.com
-                  password: Str0ng!Pass
-                  account_type:
-                    - CSR
-              warehouse:
-                value:
-                  name: Casey Brooks
-                  email: casey.brooks@cusports.com
-                  password: Str0ng!Pass
-                  account_type:
-                    - warehouse
-              shipper:
-                value:
-                  name: Morgan Diaz
-                  email: morgan.diaz@cusports.com
-                  password: Str0ng!Pass
-                  account_type:
-                    - shipper
-              customer:
-                value:
-                  name: John Doe
-                  email: JohnD@email.com
-                  password: Str0ng!Pass
-                  account_type:
-                   - customer
       responses:
         '201':
           description: The account was added.
@@ -139,12 +96,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Account'
-              example:
-                account_id: emp_1042
-                name: Jordan Lee
-                email: jordan.lee@cusports.com
-                account_type:
-                  - BU
         '400':
           description: >-
             The account details or type is invalid.
@@ -336,7 +287,7 @@ paths:
                     message: deletion successful
                 employee:
                   value:
-                    message: Employee account emp_1042 has been successfully deleted.
+                    message: Employee account has been successfully deleted.
         '401':
           description: >-
             The requester did not provide credentials, the token is invalid,
