@@ -86,7 +86,9 @@ paths:
         content:
           application/json:
             schema:
-                $ref: '#/components/schemas/Account'
+              oneOf:
+                - $ref: '#/components/schemas/CustomerAccount'
+                - $ref: '#/components/schemas/EmployeeAccount'
       responses:
         '201':
           description: The account was added.
@@ -378,16 +380,34 @@ components:
           type: string
           format: date-time
           readOnly: true
-    EmployeeAccount:
+    CustomerAccount:
       description: >-
-        An Account whose account_type may only hold the five employee user
-        types. Used when an admin adds an employee account.
+        An Account whose account_type holds only the customer user type. Used
+        when anybody signs up for a customer account.
       allOf:
         - $ref: '#/components/schemas/Account'
         - type: object
           properties:
             account_type:
               type: array
+              description: The customer role assigned to this account.
+              maxItems: 1
+              items:
+                type: string
+                enum:
+                  - customer
+    EmployeeAccount:
+      description: >-
+        An Account whose account_type holds exactly one of the five employee
+        user types. Used when an admin adds an employee account.
+      allOf:
+        - $ref: '#/components/schemas/Account'
+        - type: object
+          properties:
+            account_type:
+              type: array
+              description: The single employee role assigned to this account.
+              maxItems: 1
               items:
                 $ref: '#/components/schemas/EmployeeAccountType'
     EmployeeAccountType:
