@@ -490,4 +490,11 @@ components:
           type: string
           format: password
         account_type:
-          $ref: '#/components/schemas/AccountType'
+          type: string
+          enum:
+            - customer
+            - BU
+            - admin
+            - warehouse
+            - shipper
+            - CSR
