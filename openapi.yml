@@ -2,6 +2,10 @@ openapi: '3.0.3'
 info:
   title: CUSports
   version: '1.0'
+  description: >-
+    Mock version of the CUSports API. There is no token based auth. The
+    requester's role is passed in the role query parameter, and endpoints
+    that are limited to admins check that value.
 servers:
   - url: https://api.server.test/v1
 paths:
@@ -15,9 +19,8 @@ paths:
       operationId: listAccountsByType
       tags:
         - Accounts
-      security:
-        - bearerAuth: []
       parameters:
+        - $ref: '#/components/parameters/RoleParam'
         - name: account_type
           in: query
           required: true
@@ -56,8 +59,8 @@ paths:
                 message: The account type is invalid.
         '401':
           description: >-
-            The requester did not provide credentials, the token is invalid,
-            or the requester is not an employee or admin account.
+            The requester did not provide a role, or the role is not an
+            employee or admin role.
           content:
             application/json:
               schema:
@@ -65,7 +68,7 @@ paths:
               example:
                 message: Admin credentials required to proceed in action.
         '403':
-          description: The requester is not an admin.
+          description: The requester's role is not admin.
           content:
             application/json:
               schema:
@@ -75,12 +78,13 @@ paths:
     post:
       summary: Creates a new account
       description:
-        Creates a new account. Anybody can create a customer account, but a set of admin credentials are required to create employee accounts.
+        Creates a new account. Anybody can create a customer account, but the
+        admin role is required to create employee accounts.
       operationId: addAccount
       tags:
         - Accounts
-      security:
-        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleParam'
       requestBody:
         required: true
         content:
@@ -105,8 +109,8 @@ paths:
                 message: The user type is invalid.
         '401':
           description: >-
-            The requester is trying to make an employee account, and did not provide credentials, or the token is
-            invalid.
+            The requester is trying to make an employee account and did not
+            provide the admin role.
           content:
             application/json:
               schema:
@@ -129,8 +133,8 @@ paths:
       operationId: deleteAllAccounts
       tags:
         - Accounts
-      security:
-        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleParam'
       responses:
         '200':
           description: All accounts were deleted.
@@ -141,9 +145,7 @@ paths:
               example:
                 message: All accounts have been successfully deleted.
         '401':
-          description: >-
-            The requester did not provide credentials, or the token is
-            invalid.
+          description: The requester did not provide a role.
           content:
             application/json:
               schema:
@@ -151,7 +153,7 @@ paths:
               example:
                 message: Valid admin credentials are required.
         '403':
-          description: The requester is not an admin.
+          description: The requester's role is not admin.
           content:
             application/json:
               schema:
@@ -167,9 +169,8 @@ paths:
       operationId: getAccountById
       tags:
         - Accounts
-      security:
-        - bearerAuth: []
       parameters:
+        - $ref: '#/components/parameters/RoleParam'
         - name: id
           in: path
           required: true
@@ -184,7 +185,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Account'
         '403':
-          description: The requester is not an admin.
+          description: The requester's role is not admin.
           content:
             application/json:
               schema:
@@ -263,9 +264,8 @@ paths:
       operationId: deleteAccountById
       tags:
         - Accounts
-      security:
-        - bearerAuth: []
       parameters:
+        - $ref: '#/components/parameters/RoleParam'
         - name: id
           in: path
           required: true
@@ -288,8 +288,8 @@ paths:
                     message: Employee account has been successfully deleted.
         '401':
           description: >-
-            The requester did not provide credentials, the token is invalid,
-            or the requester is not an employee or admin account.
+            The requester did not provide a role, or the role is not an
+            employee or admin role.
           content:
             application/json:
               schema:
@@ -303,8 +303,7 @@ paths:
                     message: The action is forbidden due to missing credentials.
         '403':
           description: >-
-            The requester is signed in as a CUSports employee but is not an
-            admin.
+            The requester's role is a CUSports employee role but not admin.
           content:
             application/json:
               schema:
@@ -317,11 +316,16 @@ paths:
                   value:
                     message: The intended action cannot be performed due to incorrect credentials.
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+  parameters:
+    RoleParam:
+      name: role
+      in: query
+      required: false
+      description: >-
+        The role of the person making the request. Endpoints limited to admins
+        return 403 for any other role, and 401 where noted when it is missing.
+      schema:
+        $ref: '#/components/schemas/AccountType'
   schemas:
     Account:
       type: object
